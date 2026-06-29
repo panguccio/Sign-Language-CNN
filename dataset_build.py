@@ -1,34 +1,33 @@
 import os
 import cv2
+from torchvision.io import decode_image
+from torch.utils.data import Dataset
+import torch
+import torchvision.transforms as transforms
+
 
 path = "/Users/anna/.cache/kagglehub/datasets/nicholasnisopoli/lisdataset/versions/1/LIS-fingerspelling-dataset"
 
-class Preprocessor:
-    def __init__(self, dataset_path, image_size=(64, 64)):
-        self.dataset_path = dataset_path
-        self.image_size = image_size
-        # check image_size is a tuple
-        # train_tresh da passare al costruttore + check che sia tra 0 e 1
-
-    def preprocess(self, train_tresh):
+def get_dataset(dataset_path, train_tresh, image_size=(64, 64)):
         
         # crea i due dataset vuoti
-        train_dataset = Dataset()
-        test_dataset = Dataset()
+        train_dataset = SignDataset(image_size)
+        test_dataset = SignDataset(image_size)
         
         # check se il treshold sia tra 0 e 1
         if not (train_tresh <= 1 and train_tresh >= 0):
             return # add error
         
         # prende l'elenco di cartelle dentro il path del dataset
-        dir_list = os.listdir(self.dataset_path)
+        dir_list = sorted(os.listdir(dataset_path))
         
+        class_id = 0
         # suppone che ogni cartella sia associata a un simbolo
+        
         for symbol in dir_list:
-            print(symbol)
             
             # unisce i 2 path
-            symbol_path = os.path.join(self.dataset_path, symbol)
+            symbol_path = os.path.join(dataset_path, symbol)
             
             # prende l'insieme di immagini nella cartella (errore se non è una cartella)
             try:
@@ -45,44 +44,55 @@ class Preprocessor:
             for i, image in enumerate(img_list):
                 
                 img_path = os.path.join(symbol_path, image)
-                self.resize(img_path)
                 
                 if i < idx_thres: # lo mette dentro il train, altrimenti test
-                    train_dataset.add_example(img_path, str(symbol))
+                    train_dataset.add_example(img_path, symbol, class_id)
                 else:
-                    test_dataset.add_example(img_path, str(symbol))
+                    test_dataset.add_example(img_path, symbol, class_id)
+                    
+            class_id += 1
         
         return train_dataset, test_dataset
-    
-    def resize(self, img_path):
-        img1 = cv2.imread(img_path)
-        img2 = cv2.resize(img1, (64, 64))
-        cv2.imwrite(img_path, img2)
-        
-        
         
 
-class Dataset:
-    def __init__(self):
+class SignDataset(Dataset):
+    
+    # inizializza il dataset
+    def __init__(self, image_size):
         self.dataset = {}
+        self.image_size = image_size
+        self.label_to_idx = {}
         
-    def add_example(self, path, label):
+    def __len__(self):
+        return len(self.dataset)
+    
+    # add example as image path, label and index
+    def add_example(self, path, label, label_idx):
         id = len(self.dataset)
-        self.dataset[id] = Image(path, label)
+        self.dataset[id] = (path, label)
+        self.label_to_idx[label] = label_idx
         
     def __str__(self):
         string = ""
         for id in range(len(self.dataset)):
-            string += "| id: " + str(id) + " " + self.dataset[id].path + " " + self.dataset[id].label + " |\n"
+            string += f"| id: {id}, \t{self.dataset[id][0]}, \t\t{self.dataset[id][1]} ({self.label_to_idx[self.dataset[id][1]]})\n"
         return string
-         
-class Image:
-    def __init__(self, path, label):
-        self.path =  path
-        self.label = label     
     
-    def __str__(self):
-        return str(self.path) + " " + str(self.label)
+    def __getitem__(self, idx):
+        img_path = self.dataset[idx][0]
+        label = self.dataset[idx][1]
+        label_idx = self.label_to_idx[label]
+        
+        # carica l'immagine
+        img = cv2.imread(img_path)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img = cv2.resize(img, self.image_size)
+        
+        transform = transforms.ToTensor()
+        img_tensor = transform(img)
+        label_tensor = torch.tensor(label_idx)
+        
+        return (img_tensor, label_tensor)
     
-lis_prp = Preprocessor(path)
-train, test = lis_prp.preprocess(0.5)
+    def num_classes(self):
+        return len(self.label_to_idx)
