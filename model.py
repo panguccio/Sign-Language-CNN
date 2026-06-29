@@ -3,7 +3,7 @@ import torch
 
 class SignLanguageCNN(nn.Module):
     def __init__(self, num_classes):
-        super.__init__()
+        super().__init__()
         
         # first block
         # input = [b, 3, 64, 64]
@@ -16,13 +16,13 @@ class SignLanguageCNN(nn.Module):
         # second block
         # conv2 = [b, 32, 32, 32]
         # pool2 = [b, 32, 16, 16]
-        self.conv2 = nn.Conv2d(in_channels=3, out_channels=32, kernel_size=3, padding=1)
+        self.conv2 = nn.Conv2d(in_channels=32, out_channels=32, kernel_size=3, padding=1)
         self.relu2 = nn.ReLU()
         self.pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
         
         # third block
         # conv3 = [b, 64, 16, 16]
-        self.conv3 = nn.Conv2d(in_channels=3, out_channels=64, kernel_size=3, padding=1)
+        self.conv3 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, padding=1)
         self.relu3 = nn.ReLU()
         
         # flatten [b, 64*16*16]
