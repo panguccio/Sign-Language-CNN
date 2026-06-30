@@ -66,11 +66,11 @@ class SignDataset(Dataset):
     def __len__(self):
         return len(self.dataset)
     
-    # add example as image path, label and index
+    # add example as image path, label
     def add_example(self, path, label, label_idx):
         id = len(self.dataset)
         self.dataset[id] = (path, label)
-        self.label_to_idx[label] = label_idx
+        self.label_to_idx[label_idx] = label
         
     def __str__(self):
         string = ""
