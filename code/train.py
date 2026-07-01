@@ -87,7 +87,15 @@ def training(model, train_loader, test_loader, epochs, lr, device):
 
 def train_and_save(dataset, model_class, config, device, output_path=None):
     
-    train, test = get_dataset(dataset, config.train_threshold)
+    transforms = transforms.Compose([
+        transforms.ToPILImage(),
+        transforms.Resize((64, 64)),
+        transforms.ToTensor(),
+    ])
+
+    target_transform = torch.tensor()
+    
+    train, test = get_dataset(dataset, config.train_threshold, transforms, target_transform)
     num_classes = len(train.label_to_idx)
 
     train_loader = DataLoader(
