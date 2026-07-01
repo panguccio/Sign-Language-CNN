@@ -8,11 +8,18 @@ import torchvision.transforms as transforms
 
 path = "/Users/anna/.cache/kagglehub/datasets/nicholasnisopoli/lisdataset/versions/1/LIS-fingerspelling-dataset"
 
-def get_dataset(dataset_path, train_tresh, image_size=(64, 64)):
+# def get_dataset(dataset_path, train_tresh, image_size=(64, 64)):
+
+def get_dataset(dataset_path, train_tresh, image_size=(64, 64), transforms=None, target_transform=None):
+        
+        # Before
+        #train_dataset = SignDataset(image_size)
+        #test_dataset = SignDataset(image_size)
+        
         
         # crea i due dataset vuoti
-        train_dataset = SignDataset(image_size)
-        test_dataset = SignDataset(image_size)
+        train_dataset = SignDataset(image_size, transforms, target_transform)
+        test_dataset = SignDataset(image_size, transforms, target_transform)
         
         # check se il treshold sia tra 0 e 1
         if not (train_tresh <= 1 and train_tresh >= 0):
@@ -58,11 +65,14 @@ def get_dataset(dataset_path, train_tresh, image_size=(64, 64)):
 class SignDataset(Dataset):
     
     # inizializza il dataset
-    def __init__(self, image_size):
+    # Added transform and target_transform to init
+    def __init__(self, image_size, transform=None, target_transform=None):
         self.dataset = {}
         self.image_size = image_size
         self.label_to_idx = {}
         self.idx_to_label = {}
+        self.transform = transform
+        self.target_transform = target_transform
         
     def __len__(self):
         return len(self.dataset)
@@ -87,12 +97,20 @@ class SignDataset(Dataset):
         
         # carica l'immagine
         img = cv2.imread(img_path)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        img = cv2.resize(img, self.image_size)
         
-        transform = transforms.ToTensor()
-        img_tensor = transform(img)
-        label_tensor = torch.tensor(label_idx)
+        #img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        #img = cv2.resize(img, self.image_size)
+        # transform = transforms.ToTensor()
+        # img_tensor = transform(img)
+        
+        # Added
+        if self.transform:
+            img_tensor = self.transform(img)
+        
+        # Before there was no comment
+        if self.target_transform:
+            label_tensor = self.target_transform(label_idx)   
+        #label_tensor = torch.tensor(label_idx)
         
         return (img_tensor, label_tensor)
     
