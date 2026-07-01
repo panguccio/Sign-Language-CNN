@@ -1,5 +1,5 @@
-from dataset_build import get_dataset
-from model import SignLanguageCNN
+from main.dataset_build import get_dataset
+from code.model import SignLanguageCNN
 import os
 from pathlib import Path
 from torch.utils.data import DataLoader, Dataset

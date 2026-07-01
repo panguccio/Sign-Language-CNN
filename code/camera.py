@@ -1,5 +1,4 @@
 import cv2
-from model import SignLanguageCNN
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
