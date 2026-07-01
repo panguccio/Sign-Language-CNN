@@ -7,3 +7,6 @@ __pycache__/model.cpython-312.pyc
 __pycache__/camera.cpython-312.pyc
 __pycache__/plotter.cpython-312.pyc
 test.py
+code/train.py
+code/__pycache__/dataset_build.cpython-312.pyc
+code/__pycache__/train.cpython-312.pyc
