@@ -5,6 +5,9 @@ import os
 from pathlib import Path
 from torch.utils.data import DataLoader
 import torch
+import torchvision.transforms as transforms
+import torch.nn.functional as F
+from ResNet import Bottleneck, ResNet, ResNet50
 
 output_dir = "models"
 if not os.path.exists(output_dir):
@@ -87,15 +90,22 @@ def training(model, train_loader, test_loader, epochs, lr, device):
 
 def train_and_save(dataset, model_class, config, device, output_path=None):
     
-    transforms = transforms.Compose([
+    img_size = (64,64)
+    
+    if model_class == ResNet50:
+        img_size = (224, 224)
+    
+    transform = transforms.Compose([
         transforms.ToPILImage(),
-        transforms.Resize((64, 64)),
+        transforms.Resize(img_size),
         transforms.ToTensor(),
     ])
-
-    target_transform = torch.tensor()
     
-    train, test = get_dataset(dataset, config.train_threshold, transforms, target_transform)
+    target_transform=transforms.Lambda(
+        lambda y: torch.tensor(y)
+    )
+    
+    train, test = get_dataset(dataset, config.train_threshold, transform, target_transform)
     num_classes = len(train.label_to_idx)
 
     train_loader = DataLoader(
