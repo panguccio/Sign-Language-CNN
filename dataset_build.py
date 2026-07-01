@@ -97,4 +97,4 @@ class SignDataset(Dataset):
         return (img_tensor, label_tensor)
     
     def num_classes(self):
-        return len(self.label_to_idx)
+        return len(self.idx_to_label)
