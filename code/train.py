@@ -85,7 +85,7 @@ def training(model, train_loader, test_loader, epochs, lr, device):
     return history
 
 
-def train_and_save(dataset, model_class, config, device, output_path):
+def train_and_save(dataset, model_class, config, device, output_path=None):
     
     train, test = get_dataset(dataset, config.train_threshold)
     num_classes = len(train.label_to_idx)
@@ -113,9 +113,10 @@ def train_and_save(dataset, model_class, config, device, output_path):
         device=device
     )
     
-    output_path = os.path.join(output_dir, output_path)
-    torch.save(model, output_path)
-    print(f"Model saved at {output_path}")
+    if output_path:
+        output_path = os.path.join(output_dir, output_path)
+        torch.save(model, output_path)
+        print(f"Model saved at {output_path}")
     
     return history
 
