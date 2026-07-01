@@ -27,7 +27,8 @@ class Camera():
         options = vision.HandLandmarkerOptions(base_options=base_options,
                                             num_hands=2)
         detector = vision.HandLandmarker.create_from_options(options)
-
+        # set save=True to save the first frame
+        save = False
         while True:
             success, img = cam.read()
             img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -55,11 +56,21 @@ class Camera():
                     if y > max_y:
                         max_y = y
 
-            padding = 100
+            padding = 80
             
-            if not (max_x == 0 and max_y == 0 and min_x == frame_width and min_y == frame_height):    
-                max_x, max_y = max_x + padding, max_y + padding
-                min_x, min_y = min_x - padding, min_y - padding
+            if not (max_x == 0 or max_y == 0 or min_x == frame_width or min_y == frame_height):    
+                
+                # find the center of the hand
+                mean_x = (max_x + min_x)/2
+                mean_y = (max_y + min_y)/2
+                
+                hand_width = max_x - min_x
+                hand_height = max_y - min_y
+                side_length = max(hand_width, hand_height) + padding
+                square_padding = side_length/2
+                
+                max_x, max_y = int(mean_x + square_padding), int(mean_y + square_padding)
+                min_x, min_y = int(mean_x - square_padding), int(mean_y - square_padding)
                 
                 if min_x < 0:
                     min_x = 0
@@ -69,10 +80,12 @@ class Camera():
                     max_x = frame_width
                 if max_y > frame_height:
                     max_y = frame_height
-                    
-                cv2.rectangle(img, (min_x, min_y), (max_x, max_y), (0, 255, 0), 3)
+                
                 
                 cropped = img[min_y:max_y, min_x:max_x]
+                if save:
+                    cv2.imwrite("img.jpg", cropped)
+                    save = False
                 cropped = cv2.cvtColor(cropped, cv2.COLOR_BGR2RGB)
                 cropped = cv2.resize(cropped, (64, 64))
                 transform = transforms.ToTensor()
@@ -85,6 +98,8 @@ class Camera():
                     predicted_class = torch.argmax(probabilities, dim=1)
                 
                 output = int(predicted_class)
+                
+                cv2.rectangle(img, (min_x, min_y), (max_x, max_y), (0, 255, 0), 3)
                 
                 label = self.idx_to_label[output]
                 cv2.putText(img, label.upper(), (min_x, min_y - 30), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 255, 0), 3, cv2.LINE_AA)

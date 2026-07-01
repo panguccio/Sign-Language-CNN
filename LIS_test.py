@@ -4,7 +4,7 @@ import cv2
 import torchvision.transforms as transforms
 
 path_a = "/Users/anna/.cache/kagglehub/datasets/nicholasnisopoli/lisdataset/versions/1/LIS-fingerspelling-dataset/a/a_FATIMA_9_front.JPG"
-path_michi = "a_new.jpg"
+path_michi = "img.jpg"
 
 import torch.nn.functional as F
 
@@ -34,6 +34,15 @@ asl_model.eval()
 # output = int(predicted_class)
 # print(output)
 # print(asl_classes[output])
+
+with torch.no_grad():
+    logits = lis_model(input)
+    probabilities = F.softmax(logits, dim=1)
+    predicted_class = torch.argmax(probabilities, dim=1)
+
+output = int(predicted_class)
+print(output)
+print(lis_classes[output])
 
 from camera import Camera
 
