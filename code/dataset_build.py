@@ -1,9 +1,10 @@
 import os
 import cv2
+import random
 from torch.utils.data import Dataset
 
 
-def get_dataset(dataset_path, train_tresh, transform=None, target_transform=None):
+def get_dataset(dataset_path, train_tresh, transform=None, target_transform=None, seed=993):
         
         # define train and test datasets
         train_dataset = SignDataset(transform, target_transform)
@@ -16,6 +17,8 @@ def get_dataset(dataset_path, train_tresh, transform=None, target_transform=None
         
         # take the name of the directories 
         dir_list = sorted(os.listdir(dataset_path))
+        
+        rng = random.Random(seed)
         
         class_id = 0
         
@@ -30,6 +33,10 @@ def get_dataset(dataset_path, train_tresh, transform=None, target_transform=None
                 img_list = os.listdir(symbol_path)
             except NotADirectoryError as e:
                 continue
+            
+            # randomize the pick of paths, so the split train-test is consistent with the LIS dataset
+            img_list = img_list.copy()
+            rng.shuffle(img_list)
             
             # number of images per directoty
             dim = len(img_list)
@@ -102,3 +109,10 @@ class SignDataset(Dataset):
     
     def num_classes(self):
         return len(self.idx_to_label)
+    
+    def get_classes(self):
+        classes = []
+        for i in range(self.num_classes()):
+            classes.append(self.idx_to_label[i])
+            
+        return classes
