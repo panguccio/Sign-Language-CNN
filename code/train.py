@@ -1,5 +1,6 @@
 import os
 import torch
+from representation import show_feature_maps
 import torchvision.transforms as transforms
 from dataset_build import get_dataset
 from torch import nn
