@@ -1,57 +1,51 @@
 import os
 import cv2
-from torchvision.io import decode_image
 from torch.utils.data import Dataset
-import torch
-import torchvision.transforms as transforms
-from torchvision.io import decode_image
 
-
-path = "/Users/anna/.cache/kagglehub/datasets/nicholasnisopoli/lisdataset/versions/1/LIS-fingerspelling-dataset"
 
 def get_dataset(dataset_path, train_tresh, transform=None, target_transform=None):
         
-        # Before
-        #train_dataset = SignDataset(image_size)
-        #test_dataset = SignDataset(image_size)
-        
-        
-        # crea i due dataset vuoti
+        # define train and test datasets
         train_dataset = SignDataset(transform, target_transform)
         test_dataset = SignDataset(transform, target_transform)
         
-        # check se il treshold sia tra 0 e 1
+        # train tresh to divide the original dataset
         if not (train_tresh <= 1 and train_tresh >= 0):
-            return # add error
+            # MISSING ERROR
+            return
         
-        # prende l'elenco di cartelle dentro il path del dataset
+        # take the name of the directories 
         dir_list = sorted(os.listdir(dataset_path))
         
         class_id = 0
-        # suppone che ogni cartella sia associata a un simbolo
         
+        # iterate over the directories (each directory has the name that corresponds with the label)
         for symbol in dir_list:
             
-            # unisce i 2 path
+            #add the single directory to the main path
             symbol_path = os.path.join(dataset_path, symbol)
             
-            # prende l'insieme di immagini nella cartella (errore se non è una cartella)
+            # there exists a readme.md file, skip it
             try:
                 img_list = os.listdir(symbol_path)
             except NotADirectoryError as e:
                 continue
             
-            # numero di immagini contenute
+            # number of images per directoty
             dim = len(img_list)
-            # numero di immagini che andranno nel train set
+            
+            # number of images in the train set
             idx_thres = int(dim * train_tresh)
             
-            # per ogni immagine, la aggiunge al train o al test
+            # iterate over the images
             for i, image in enumerate(img_list):
                 
+                # add the image path to the main one
                 img_path = os.path.join(symbol_path, image)
                 
-                if i < idx_thres: # lo mette dentro il train, altrimenti test
+                # split train and test based on the index
+                # CHECK: randomize this pick
+                if i < idx_thres:
                     train_dataset.add_example(img_path, symbol, class_id)
                 else:
                     test_dataset.add_example(img_path, symbol, class_id)
@@ -63,11 +57,9 @@ def get_dataset(dataset_path, train_tresh, transform=None, target_transform=None
 
 class SignDataset(Dataset):
     
-    # inizializza il dataset
-    # Added transform and target_transform to init
+    # added transform and target_transform to init
     def __init__(self, transform=None, target_transform=None):
         self.dataset = {}
-        #self.image_size = image_size
         self.label_to_idx = {}
         self.idx_to_label = {}
         self.transform = transform
@@ -94,24 +86,19 @@ class SignDataset(Dataset):
         label = self.dataset[idx][1]
         label_idx = self.label_to_idx[label]
         
-        # carica l'immagine
+        # upload the image
         img = cv2.imread(img_path)
         
+        # transform the image from BGR to RGB
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        #img = cv2.resize(img, self.image_size)
-        #transform = transforms.ToTensor()
-        #img = transform(img)
         
-        # Added
         if self.transform:
             img = self.transform(img)
         
-        # Before there was no comment
         if self.target_transform:
-            label_tensor = self.target_transform(label_idx)   
-        #label_tensor = torch.tensor(label_idx)
+            label = self.target_transform(label_idx)   
         
-        return (img, label_tensor)
+        return img, label
     
     def num_classes(self):
         return len(self.idx_to_label)
