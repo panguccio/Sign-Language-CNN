@@ -19,8 +19,13 @@ asl_model.eval()
 
 cropped = cv2.imread(path_michi)
 cropped = cv2.cvtColor(cropped, cv2.COLOR_BGR2RGB)
-cropped = cv2.resize(cropped, (64, 64))
-transform = transforms.ToTensor()
+
+transform = transforms.Compose([
+    transforms.ToPILImage(),
+    transforms.Resize((64, 64)),
+    transforms.ToTensor(),
+])
+
 input = transform(cropped)
 input = input.unsqueeze(0)
 
