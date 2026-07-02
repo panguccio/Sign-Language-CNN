@@ -14,7 +14,7 @@ import torch.nn.functional as F
 lis_classes = {0: 'a', 1: 'b', 2: 'c', 3: 'd', 4: 'e', 5: 'f', 6: 'h', 7: 'i', 8: 'k', 9: 'l', 10: 'm', 11: 'n', 12: 'o', 13: 'p', 14: 'q', 15: 'r', 16: 't', 17: 'u', 18: 'v', 19: 'w', 20: 'x', 21: 'y'}
 
 lis_model = SignLanguageCNN(len(lis_classes))
-asl_model = torch.load(os.path.join(model_dir, "asl_model.pth"), weights_only=False)
+lis_model = torch.load(os.path.join(model_dir, "lis_model.pth"), weights_only=False)
 lis_model.eval()
 
 
