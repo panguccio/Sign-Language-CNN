@@ -4,11 +4,11 @@ import random
 from torch.utils.data import Dataset
 
 
-def get_dataset(dataset_path, train_tresh, transform=None, target_transform=None, seed=993):
+def get_dataset(dataset_path, train_tresh, train_transform=None, test_transform=None, target_transform=None, seed=993):
         
         # define train and test datasets
-        train_dataset = SignDataset(transform, target_transform)
-        test_dataset = SignDataset(transform, target_transform)
+        train_dataset = SignDataset(train_transform, target_transform)
+        test_dataset = SignDataset(test_transform, target_transform)
         
         # train tresh to divide the original dataset
         if not (train_tresh <= 1 and train_tresh >= 0):
