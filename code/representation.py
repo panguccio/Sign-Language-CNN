@@ -19,7 +19,7 @@ def show_feature_maps(model, loader, class_names, device):
     plt.close()
 
     # to modify
-    layers_to_show = ["conv1", "relu1", "pool1", "conv2", "relu2", "pool2", "conv3", "relu3"]
+    layers_to_show = ["conv1", "relu1", "pool1", "conv2", "relu2", "pool2", "conv3", "relu3", "pool3"]
 
     for layer_name in layers_to_show:
         feat = activations[layer_name][0].detach().cpu()
