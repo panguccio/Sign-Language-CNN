@@ -5,7 +5,7 @@ import torchvision.transforms as transforms
 from dataset_build import get_dataset
 from torch import nn
 from torch.utils.data import DataLoader
-from ResNet import ResNet50
+from torchvision.models import resnet50, vgg16, mobilenet_v2
 
 
 # dir for the models
@@ -94,20 +94,31 @@ def train_and_save(dataset, model_class, config, device, output_path=None):
     img_size = (64,64)
     
     # if resnet, change the value of the image resize
-    if model_class == ResNet50:
+    if model_class == resnet50 or model_class == vgg16 or model_class == mobilenet_v2:
         img_size = (224, 224)
     
-    transform = transforms.Compose([
+    train_transform = transforms.Compose([
+        transforms.ToPILImage(),
+        transforms.Resize(img_size),
+        transforms.RandomRotation(degrees=15),
+        transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.2, hue=0.05),
+        transforms.RandomAffine(degrees=0, translate=(0.05, 0.05), scale=(0.9, 1.1)),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+    ])
+    
+    test_transform = transforms.Compose([
         transforms.ToPILImage(),
         transforms.Resize(img_size),
         transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
     ])
     
     target_transform = transforms.Lambda(
         lambda y: torch.tensor(y)
     )
     
-    train, test = get_dataset(dataset, config.train_threshold, transform, target_transform)
+    train, test = get_dataset(dataset, config.train_threshold, train_transform, test_transform, target_transform)
     num_classes = len(train.label_to_idx)
 
     train_loader = DataLoader(
@@ -122,7 +133,27 @@ def train_and_save(dataset, model_class, config, device, output_path=None):
             shuffle=False,
     )
 
-    model = model_class(num_classes).to(device)
+    if model_class == resnet50:
+        model = resnet50(weights='DEFAULT')
+        for param in model.parameters():
+            param.requires_grad = False
+        num_features = model.fc.in_features
+        model.fc = nn.Linear(num_features, num_classes)
+    elif model_class == vgg16:
+        model = vgg16(weights='DEFAULT')
+        for param in model.features.parameters():
+            param.requires_grad = False
+        model.classifier[6] = nn.Linear(model.classifier[6].in_features, num_classes)
+    elif model_class == mobilenet_v2:
+        model = mobilenet_v2(weights='DEFAULT')
+        for param in model.parameters():
+            param.requires_grad = False
+        num_features = model.classifier[1].in_features
+        model.classifier[1] = nn.Linear(num_features, num_classes)
+    else:
+        model = model_class(num_classes)
+
+    model = model.to(device)
 
     history = training(
         model=model,
