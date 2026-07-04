@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-
+# save the figures in output dir
 def plot_loss(history):
     plt.figure(figsize=(6, 4))
     plt.plot(history["train_loss"], label="train_loss")
