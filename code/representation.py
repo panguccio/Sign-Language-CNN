@@ -1,5 +1,12 @@
 import matplotlib.pyplot as plt
 import torch
+import os
+
+
+repr_dir = "representations"
+if not os.path.exists(repr_dir):
+    os.makedirs(repr_dir)
+
 
 def show_feature_maps(model, loader, class_names, device):
     model.eval()
@@ -40,6 +47,7 @@ def show_feature_maps(model, loader, class_names, device):
 
         fig.suptitle(f"Feature maps at layer: {layer_name}", y=0.98)
         plt.tight_layout()
+        fig.savefig(os.path.join(repr_dir, f"{layer_name}_feature_maps.png"), dpi=160, bbox_inches="tight")
         plt.show()
         plt.close(fig)
         

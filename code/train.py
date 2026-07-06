@@ -1,6 +1,6 @@
 import os
 import torch
-from representation import show_feature_maps
+from representation import show_feature_maps, show_representation_summaries
 import torchvision.transforms as transforms
 from dataset_build import get_dataset
 from torch import nn
@@ -88,7 +88,7 @@ def training(model, train_loader, test_loader, epochs, lr, device):
     return history
 
 
-def train_and_save(dataset, model_class, config, device, output_path=None):
+def train_and_save(dataset, model_class, config, device, output_path=None, save_repr=False):
     
     # default image resize for our custom nn
     img_size = (64,64)
@@ -168,6 +168,9 @@ def train_and_save(dataset, model_class, config, device, output_path=None):
         output_path = os.path.join(output_dir, output_path)
         torch.save(model, output_path)
         print(f"Model saved at {output_path}")
+        
+    if save_repr:
+        show_feature_maps(model, test_loader, train.idx_to_label, device)
     
     return history
 
